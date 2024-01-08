@@ -1,6 +1,6 @@
 pipeline{
     agent{
-        label any
+        label "build-in"
     }
     tools {
         jdk 'Java17'
@@ -18,9 +18,6 @@ pipeline{
 
     stages{
         stage("Cleanup Workspace"){
-            agent{
-                    label "jenkins-agent"
-                 }
             steps {
                 cleanWs()
             }
@@ -28,9 +25,6 @@ pipeline{
         }
     
         stage("Checkout from SCM"){
-            agent{
-                    label "jenkins-agent"
-                 }
             steps {
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/Karimbraham/GitJenDocKub'
             }
@@ -38,9 +32,6 @@ pipeline{
         }
 
         stage("Build Application"){
-            agent{
-                    label "jenkins-agent"
-                 }
             steps {
                 sh "mvn clean package"
             }
@@ -48,9 +39,6 @@ pipeline{
         }
 
         stage("Test Application"){
-            agent{
-                    label "jenkins-agent"
-                 }
             steps {
                 sh "mvn test"
             }
@@ -58,9 +46,6 @@ pipeline{
         }
         
         stage("Build & Push Docker Image") {
-            agent{
-                    label "build-in"
-                 }
             steps {
                 script {
                     docker.withRegistry('',DOCKER_PASS) {
