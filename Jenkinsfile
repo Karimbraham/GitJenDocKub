@@ -8,7 +8,7 @@ pipeline{
     }
     environment {
         APP_NAME = "gitjendockub"
-        RELEASE = "1.0.0"
+        RELEASE = "2.0.0"
         DOCKER_USER = "karimbr"
         DOCKER_PASS = 'dockerhub'
         IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
