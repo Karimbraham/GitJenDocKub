@@ -17,14 +17,14 @@ pipeline{
     }
 
     stages{
-        stage("Cleanup Workspace"){
+        stage("CWS"){
             steps {
                 cleanWs()
             }
 
         }
     
-        stage("Checkout from SCM"){
+        stage("Checkout"){
             steps {
                 git branch: 'main', credentialsId: 'github', url: 'https://github.com/Karimbraham/GitJenDocKub'
             }
