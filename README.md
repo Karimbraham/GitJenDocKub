@@ -1,7 +1,3 @@
-Here’s the updated README documentation that matches your provided Jenkins pipeline:
-
----
-
 # Jenkins CI/CD Pipeline with Docker and Kubernetes
 
 This project demonstrates a CI/CD pipeline using **Jenkins**, **Docker**, and **Kubernetes**. The pipeline performs the following steps:
