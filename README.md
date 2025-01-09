@@ -115,5 +115,5 @@ The pipeline is defined in the `Jenkinsfile`. Below is the summary of the pipeli
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [GPL-3.0 license](LICENSE).
  
