@@ -1,4 +1,4 @@
-Here's a detailed README documentation for your GitHub project:
+Here’s the updated README documentation that matches your provided Jenkins pipeline:
 
 ---
 
@@ -6,12 +6,12 @@ Here's a detailed README documentation for your GitHub project:
 
 This project demonstrates a CI/CD pipeline using **Jenkins**, **Docker**, and **Kubernetes**. The pipeline performs the following steps:
 
-1. **Checkout the Code**: Retrieves the source code from the version control system.
-2. **Test**: Runs unit tests to validate the application.
-3. **Build**: Builds the application code.
-4. **Create Docker Image**: Packages the application into a Docker image.
-5. **Deploy to DockerHub**: Pushes the Docker image to a DockerHub repository.
-6. **Deploy to Kubernetes**: Deploys the application to a Kubernetes cluster.
+1. **Clean Workspace**: Cleans the Jenkins workspace to ensure a fresh start for each build.
+2. **Checkout the Code**: Retrieves the source code from the `main` branch of the Git repository.
+3. **Build Application**: Builds the application using Maven.
+4. **Test Application**: Runs unit tests to validate the application.
+5. **Build and Push Docker Image**: Builds a Docker image for the application and pushes it to DockerHub.
+6. **Deploy to Kubernetes**: Deploys the application to a Kubernetes cluster using the specified Kubernetes manifests.
 
 ---
 
@@ -28,13 +28,13 @@ To run this pipeline, ensure the following are set up:
   - Jenkins user has access to Docker and Kubernetes CLIs.
 - **Docker**:
   - Installed and running.
-  - Access to a DockerHub account.
+  - Access to a DockerHub account with valid credentials.
 - **Kubernetes**:
   - A running Kubernetes cluster (e.g., Minikube, GKE, EKS, AKS).
   - `kubectl` configured to interact with the cluster.
 - **DockerHub**:
   - A DockerHub account for storing Docker images.
-  - Credentials stored in Jenkins as secrets.
+  - Credentials stored in Jenkins as a secret (`DOCKER_PASS`).
 - **Git Repository**:
   - Source code hosted in a version control system (e.g., GitHub).
 
@@ -44,75 +44,38 @@ To run this pipeline, ensure the following are set up:
 
 ### Jenkinsfile
 
-The pipeline is defined in the `Jenkinsfile`. Below is an example:
+The pipeline is defined in the `Jenkinsfile`. Below is the summary of the pipeline's stages:
 
-```groovy
-pipeline {
-    agent any
+1. **Clean Workspace (CWS)**:
+   - Cleans the Jenkins workspace to remove any previous build artifacts.
 
-    environment {
-        DOCKER_CREDENTIALS = credentials('dockerhub-credentials') // Jenkins credentials for DockerHub
-        DOCKER_IMAGE_NAME = 'your-dockerhub-username/your-image-name'
-        KUBERNETES_DEPLOYMENT_FILE = 'k8s-deployment.yaml'
-    }
+2. **Checkout Code**:
+   - Pulls the source code from the `main` branch of the GitHub repository:
+     ```groovy
+     git branch: 'main', credentialsId: 'github', url: 'https://github.com/Karimbraham/GitJenDocKub'
+     ```
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
+3. **Build Application**:
+   - Uses Maven to clean and package the application:
+     ```bash
+     mvn clean package
+     ```
 
-        stage('Run Tests') {
-            steps {
-                sh 'mvn test' // Replace with your test command
-            }
-        }
+4. **Test Application**:
+   - Runs unit tests using Maven:
+     ```bash
+     mvn test
+     ```
 
-        stage('Build Application') {
-            steps {
-                sh 'mvn package' // Replace with your build command
-            }
-        }
+5. **Build and Push Docker Image**:
+   - Builds a Docker image using the application code.
+   - Pushes the image to DockerHub with the following tags:
+     - `${IMAGE_TAG}` (e.g., `3.0.0-1`)
+     - `latest`
+   - Docker credentials (`DOCKER_PASS`) are used for authentication.
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh "docker build -t ${DOCKER_IMAGE_NAME}:latest ."
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    sh """
-                        echo ${DOCKER_CREDENTIALS_PSW} | docker login -u ${DOCKER_CREDENTIALS_USR} --password-stdin
-                        docker push ${DOCKER_IMAGE_NAME}:latest
-                    """
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    sh "kubectl apply -f ${KUBERNETES_DEPLOYMENT_FILE}"
-                }
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
-}
-```
+6. **Deploy to Kubernetes**:
+   - Applies Kubernetes manifests from the `kubernetes-manifests/` directory to deploy the application.
 
 ---
 
@@ -124,61 +87,24 @@ pipeline {
 
 2. **Add DockerHub Credentials**:
    - Navigate to `Manage Jenkins > Manage Credentials`.
-   - Add your DockerHub username and password as a secret with an ID, e.g., `dockerhub-credentials`.
+   - Add your DockerHub username and password as a secret with an ID (e.g., `DOCKER_PASS`).
 
-3. **Create a Multibranch Pipeline Job**:
-   - In Jenkins, create a new job of type "Multibranch Pipeline".
-   - Point the job to your Git repository containing the `Jenkinsfile`.
+3. **Add GitHub Credentials**:
+   - Add your GitHub credentials (e.g., Personal Access Token) to Jenkins with an ID (e.g., `github`).
 
-4. **Configure Kubernetes Credentials** (if needed):
+4. **Create a Pipeline Job**:
+   - In Jenkins, create a new job of type "Pipeline".
+   - Point the job to your `Jenkinsfile`.
+
+5. **Configure Kubernetes Credentials** (if needed):
    - Set up service account credentials in Jenkins to interact with your Kubernetes cluster.
 
 ---
-
-## Deployment File for Kubernetes
-
-The Kubernetes deployment file (`k8s-deployment.yaml`) should look like this:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: my-app
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: my-app
-  template:
-    metadata:
-      labels:
-        app: my-app
-    spec:
-      containers:
-      - name: my-app
-        image: your-dockerhub-username/your-image-name:latest
-        ports:
-        - containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: my-app-service
-spec:
-  type: LoadBalancer
-  selector:
-    app: my-app
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-```
-
----
+ 
 
 ## Usage
 
-1. Push your application code and `Jenkinsfile` to the Git repository.
+1. Push your application code and `Jenkinsfile` to the GitHub repository.
 2. Configure the pipeline in Jenkins.
 3. Trigger the pipeline build in Jenkins.
 4. Monitor the pipeline's progress in the Jenkins UI.
@@ -191,16 +117,7 @@ spec:
 
 ---
 
-## Contributing
-
-Contributions are welcome! Please fork the repository and submit a pull request.
-
----
-
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-Let me know if you'd like additional details or adjustments!
+ 
